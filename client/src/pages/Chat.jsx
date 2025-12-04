@@ -6,6 +6,7 @@ import { socketService } from '../services/socket';
 import { channelService } from '../services';
 import Sidebar from '../components/Sidebar';
 import ChatArea from '../components/ChatArea';
+import CursorFollower from '../components/CursorFollower';
 
 export default function Chat() {
   const navigate = useNavigate();
@@ -81,6 +82,7 @@ export default function Chat() {
 
   return (
     <div className="flex h-screen bg-gray-100">
+      <CursorFollower variant="circle" />
       <Sidebar />
       <ChatArea />
     </div>

@@ -5,6 +5,7 @@ import { useChatStore } from '../store/chatStore';
 import { channelService } from '../services';
 import { socketService } from '../services/socket';
 import { Hash, Plus, LogOut, Users } from 'lucide-react';
+import Logo from './Logo';
 
 export default function Sidebar() {
   const navigate = useNavigate();
@@ -65,7 +66,7 @@ export default function Sidebar() {
       {/* Header */}
       <div className="p-4 border-b border-indigo-800 animate-fade-in">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold">MiniSlack</h1>
+          <Logo size="small" variant="dark" />
           <button
             onClick={handleLogout}
             className="p-2 hover:bg-indigo-800 rounded transition hover:scale-110 hover:rotate-12"
@@ -105,7 +106,7 @@ export default function Sidebar() {
                 }`}
                 style={{ animationDelay: `${index * 0.05}s` }}
               >
-                <Hash className="w-4 h-4 mr-2" />
+                <span className="mr-2">💬</span>
                 <span className="truncate">{channel.name}</span>
               </button>
             ))}
@@ -120,17 +121,27 @@ export default function Sidebar() {
               Online ({onlineUsers.length})
             </h2>
           </div>
-          <div className="space-y-1">
-            {onlineUsers.slice(0, 10).map((userId, index) => (
-              <div 
-                key={userId} 
-                className="flex items-center text-sm text-indigo-200 animate-slide-in-bottom"
-                style={{ animationDelay: `${index * 0.05}s` }}
-              >
-                <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse-custom"></div>
-                User {userId.substring(0, 6)}
-              </div>
-            ))}
+          <div className="space-y-2">
+            {onlineUsers.slice(0, 10).map((userId, index) => {
+              // Use the userId to get initials (first 2 chars of ID)
+              const userInitials = userId.substring(0, 2).toUpperCase();
+              const userEmojis = ['👤', '👨', '👩', '🧑', '👨‍💻', '👩‍💻', '🧑‍💻'];
+              const userEmoji = userEmojis[index % userEmojis.length];
+              
+              return (
+                <div 
+                  key={userId} 
+                  className="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-800 transition text-sm text-indigo-100 animate-slide-in-bottom"
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
+                  <div className="relative">
+                    <span className="text-lg">{userEmoji}</span>
+                    <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-indigo-900 animate-pulse-custom"></div>
+                  </div>
+                  <span className="truncate font-medium">User {userInitials}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

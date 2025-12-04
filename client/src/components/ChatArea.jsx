@@ -1,15 +1,17 @@
 import { useEffect, useState, useRef } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useChatStore } from '../store/chatStore';
+import { useThemeStore } from '../store/themeStore';
 import { messageService } from '../services';
 import { socketService } from '../services/socket';
 import { format } from 'date-fns';
-import { Send, Hash, Smile } from 'lucide-react';
+import { Send, Hash, Smile, Moon, Sun } from 'lucide-react';
 import EmojiPicker from 'emoji-picker-react';
 
 export default function ChatArea() {
   const { user } = useAuthStore();
   const { currentChannel, messages, setMessages, typingUsers } = useChatStore();
+  const { isDarkMode, toggleTheme } = useThemeStore();
   const [inputValue, setInputValue] = useState('');
   const [loading, setLoading] = useState(false);
   const [typingTimeout, setTypingTimeout] = useState(null);
@@ -95,9 +97,9 @@ export default function ChatArea() {
 
   if (!currentChannel) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-white">
-        <div className="text-center text-gray-400 animate-fade-in">
-          <Hash className="w-16 h-16 mx-auto mb-4 animate-float" />
+      <div className={`flex-1 flex items-center justify-center ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
+        <div className={`text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-400'} animate-fade-in`}>
+          <div className="text-6xl mb-4 animate-float">💬</div>
           <p className="text-xl">Select a channel to start messaging</p>
         </div>
       </div>
@@ -108,21 +110,47 @@ export default function ChatArea() {
   const channelTyping = typingUsers[currentChannel._id] || [];
 
   return (
-    <div className="flex-1 flex flex-col bg-white animate-slide-in-right">
+    <div className={`flex-1 flex flex-col ${isDarkMode ? 'bg-gray-900' : 'bg-white'} animate-slide-in-right`}>
       {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-200 bg-white shadow-sm animate-slide-in-top">
-        <div className="flex items-center">
-          <Hash className="w-6 h-6 text-gray-600 mr-2" />
-          <div>
-            <h2 className="text-xl font-semibold text-gray-800">
-              {currentChannel.name}
-            </h2>
-            {currentChannel.description && (
-              <p className="text-sm text-gray-500">{currentChannel.description}</p>
-            )}
+      <div className={`px-6 py-4 border-b ${isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'} shadow-sm animate-slide-in-top`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className={`text-2xl mr-2 ${isDarkMode ? 'opacity-80' : ''}`}>💬</span>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className={`text-2xl font-bold bg-gradient-to-r ${
+                  isDarkMode 
+                    ? 'from-indigo-400 via-purple-400 to-pink-400' 
+                    : 'from-indigo-600 via-purple-600 to-pink-600'
+                } bg-clip-text text-transparent animate-gradient-x`}>
+                  {currentChannel.name}
+                </h2>
+                <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                  isDarkMode 
+                    ? 'bg-indigo-900/50 text-indigo-300 border border-indigo-700' 
+                    : 'bg-indigo-100 text-indigo-700 border border-indigo-300'
+                }`}>
+                  Channel
+                </span>
+              </div>
+              {currentChannel.description && (
+                <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{currentChannel.description}</p>
+              )}
+            </div>
           </div>
+          <button
+            onClick={toggleTheme}
+            className={`p-3 rounded-lg transition-all duration-300 ${
+              isDarkMode 
+                ? 'bg-gray-700 text-yellow-400 hover:bg-gray-600 hover:scale-110' 
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-110'
+            }`}
+            title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          >
+            {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
         </div>
-        <div className="mt-2 text-sm text-gray-500">
+        <div className={`mt-2 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
           {currentChannel.members?.length || 0} members
         </div>
       </div>
@@ -131,10 +159,10 @@ export default function ChatArea() {
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
         {loading ? (
           <div className="flex items-center justify-center h-full">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            <div className={`animate-spin rounded-full h-12 w-12 border-b-2 ${isDarkMode ? 'border-indigo-400' : 'border-indigo-600'}`}></div>
           </div>
         ) : channelMessages.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-gray-400">
+          <div className={`flex items-center justify-center h-full ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
             <p>No messages yet. Start the conversation!</p>
           </div>
         ) : (
@@ -142,7 +170,7 @@ export default function ChatArea() {
             {channelMessages.map((message, index) => (
               <div 
                 key={message._id} 
-                className="flex gap-3 animate-message hover:bg-gray-50 p-2 rounded-lg transition"
+                className={`flex gap-3 animate-message ${isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-50'} p-2 rounded-lg transition`}
                 style={{ animationDelay: `${Math.min(index * 0.05, 1)}s` }}
               >
                 <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white font-semibold shadow-md hover:scale-110 transition">
@@ -150,14 +178,14 @@ export default function ChatArea() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2">
-                    <span className="font-semibold text-gray-900">
+                    <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                       {message.user?.username || 'Unknown'}
                     </span>
-                    <span className="text-xs text-gray-500">
+                    <span className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
                       {format(new Date(message.createdAt), 'PPp')}
                     </span>
                   </div>
-                  <p className="text-gray-700 break-words">{message.content}</p>
+                  <p className={`break-words ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{message.content}</p>
                 </div>
               </div>
             ))}
@@ -167,11 +195,11 @@ export default function ChatArea() {
 
         {/* Typing Indicator */}
         {channelTyping.length > 0 && (
-          <div className="text-sm text-gray-500 italic animate-fade-in flex items-center gap-2">
+          <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} italic animate-fade-in flex items-center gap-2`}>
             <div className="flex gap-1">
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce-custom"></div>
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce-custom" style={{ animationDelay: '0.1s' }}></div>
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce-custom" style={{ animationDelay: '0.2s' }}></div>
+              <div className={`w-2 h-2 ${isDarkMode ? 'bg-gray-500' : 'bg-gray-400'} rounded-full animate-bounce-custom`}></div>
+              <div className={`w-2 h-2 ${isDarkMode ? 'bg-gray-500' : 'bg-gray-400'} rounded-full animate-bounce-custom`} style={{ animationDelay: '0.1s' }}></div>
+              <div className={`w-2 h-2 ${isDarkMode ? 'bg-gray-500' : 'bg-gray-400'} rounded-full animate-bounce-custom`} style={{ animationDelay: '0.2s' }}></div>
             </div>
             <span>{channelTyping.join(', ')} {channelTyping.length === 1 ? 'is' : 'are'} typing...</span>
           </div>
@@ -179,17 +207,17 @@ export default function ChatArea() {
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t border-gray-200 bg-gray-50 relative">
+      <div className={`p-4 border-t ${isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-gray-50'} relative`}>
         {showEmojiPicker && (
           <div className="absolute bottom-20 left-4 z-10 animate-scale-in">
-            <EmojiPicker onEmojiClick={onEmojiClick} />
+            <EmojiPicker onEmojiClick={onEmojiClick} theme={isDarkMode ? 'dark' : 'light'} />
           </div>
         )}
         <form onSubmit={handleSubmit} className="flex gap-3">
           <button
             type="button"
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-            className="p-3 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded-lg transition"
+            className={`p-3 ${isDarkMode ? 'text-gray-400 hover:text-indigo-400 hover:bg-gray-700' : 'text-gray-500 hover:text-indigo-600 hover:bg-gray-100'} rounded-lg transition`}
           >
             <Smile className="w-6 h-6" />
           </button>
@@ -198,7 +226,11 @@ export default function ChatArea() {
             value={inputValue}
             onChange={handleInputChange}
             placeholder={`Message #${currentChannel.name}`}
-            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white"
+            className={`flex-1 px-4 py-3 border ${
+              isDarkMode 
+                ? 'border-gray-600 bg-gray-700 text-white placeholder-gray-400 focus:ring-indigo-500' 
+                : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500 focus:ring-indigo-500'
+            } rounded-lg focus:ring-2 focus:border-transparent`}
           />
           <button
             type="submit"

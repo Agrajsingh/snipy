@@ -4,8 +4,9 @@ import { persist } from 'zustand/middleware';
 export const useThemeStore = create(
   persist(
     (set) => ({
-      currentTheme: 'indigo',
-      setTheme: (theme) => set({ currentTheme: theme }),
+      isDarkMode: false,
+      toggleTheme: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
+      setDarkMode: (isDark) => set({ isDarkMode: isDark }),
     }),
     {
       name: 'theme-storage',

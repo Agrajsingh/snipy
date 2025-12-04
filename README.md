@@ -1,4 +1,4 @@
-# Mini Slack Clone
+# Snipy
 
 A real-time team chat application built with the MERN stack (MongoDB, Express, React, Node.js), Socket.io, and TailwindCSS.
 
@@ -48,7 +48,7 @@ A real-time team chat application built with the MERN stack (MongoDB, Express, R
 
 ```bash
 git clone <repository-url>
-cd mini-slack-clone
+cd snipy
 ```
 
 2. Install server dependencies:
@@ -122,7 +122,7 @@ pnpm dev
 ## Project Structure
 
 ```
-mini-slack-clone/
+snipy/
 ├── client/                 # Frontend React application
 │   ├── src/
 │   │   ├── components/     # Reusable UI components
