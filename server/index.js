@@ -7,6 +7,8 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import channelRoutes from "./routes/channelRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
+import friendRoutes from "./routes/friendRoutes.js";
+import directMessageRoutes from "./routes/directMessageRoutes.js";
 import User from "./models/User.js";
 import Message from "./models/Message.js";
 
@@ -35,6 +37,8 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/channels", channelRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/friends", friendRoutes);
+app.use("/api/dm", directMessageRoutes);
 
 // Socket.io for real-time communication
 const connectedUsers = new Map(); // socketId -> userId
@@ -92,6 +96,120 @@ io.on("connection", (socket) => {
 
   socket.on("typing:stop", ({ channelId, username }) => {
     socket.to(channelId).emit("typing:stop", { username });
+  });
+
+  // WebRTC Video Calling Signaling
+  socket.on("call:offer", ({ to, from, offer, fromUserData }) => {
+    console.log(`Call offer from ${from} to ${to}`);
+    // Find the socket of the target user
+    const targetSocketId = Array.from(connectedUsers.entries()).find(
+      ([socketId, userId]) => userId === to
+    )?.[0];
+
+    if (targetSocketId) {
+      io.to(targetSocketId).emit("call:incoming", {
+        from,
+        offer,
+        fromUserData,
+      });
+    } else {
+      socket.emit("call:error", { message: "User is not available" });
+    }
+  });
+
+  socket.on("call:answer", ({ to, from, answer }) => {
+    console.log(`Call answer from ${from} to ${to}`);
+    const targetSocketId = Array.from(connectedUsers.entries()).find(
+      ([socketId, userId]) => userId === to
+    )?.[0];
+
+    if (targetSocketId) {
+      io.to(targetSocketId).emit("call:answered", { from, answer });
+    }
+  });
+
+  socket.on("call:ice-candidate", ({ to, candidate }) => {
+    const targetSocketId = Array.from(connectedUsers.entries()).find(
+      ([socketId, userId]) => userId === to
+    )?.[0];
+
+    if (targetSocketId) {
+      io.to(targetSocketId).emit("call:ice-candidate", { candidate });
+    }
+  });
+
+  socket.on("call:decline", ({ to, from }) => {
+    console.log(`Call declined by ${from} to ${to}`);
+    const targetSocketId = Array.from(connectedUsers.entries()).find(
+      ([socketId, userId]) => userId === to
+    )?.[0];
+
+    if (targetSocketId) {
+      io.to(targetSocketId).emit("call:declined", { from });
+    }
+  });
+
+  socket.on("call:end", ({ to }) => {
+    console.log(`Call ended to ${to}`);
+    const targetSocketId = Array.from(connectedUsers.entries()).find(
+      ([socketId, userId]) => userId === to
+    )?.[0];
+
+    if (targetSocketId) {
+      io.to(targetSocketId).emit("call:ended");
+    }
+  });
+
+  // Friend Request Notifications
+  socket.on("friend:requestSent", ({ to, fromUserData }) => {
+    const targetSocketId = Array.from(connectedUsers.entries()).find(
+      ([socketId, userId]) => userId === to
+    )?.[0];
+
+    if (targetSocketId) {
+      io.to(targetSocketId).emit("friend:request", { from: fromUserData });
+    }
+  });
+
+  socket.on("friend:requestAccepted", ({ to, acceptedUserData }) => {
+    const targetSocketId = Array.from(connectedUsers.entries()).find(
+      ([socketId, userId]) => userId === to
+    )?.[0];
+
+    if (targetSocketId) {
+      io.to(targetSocketId).emit("friend:accepted", { user: acceptedUserData });
+    }
+  });
+
+  socket.on("friend:requestRejected", ({ to }) => {
+    const targetSocketId = Array.from(connectedUsers.entries()).find(
+      ([socketId, userId]) => userId === to
+    )?.[0];
+
+    if (targetSocketId) {
+      io.to(targetSocketId).emit("friend:rejected");
+    }
+  });
+
+  // Direct Message Events
+  socket.on("dm:send", ({ to, message, conversationId }) => {
+    const targetSocketId = Array.from(connectedUsers.entries()).find(
+      ([socketId, userId]) => userId === to
+    )?.[0];
+
+    if (targetSocketId) {
+      io.to(targetSocketId).emit("dm:receive", { message, conversationId });
+    }
+  });
+
+  socket.on("dm:read", ({ to, conversationId }) => {
+    const targetSocketId = Array.from(connectedUsers.entries()).find(
+      ([socketId, userId]) => userId === to
+    )?.[0];
+
+    if (targetSocketId) {
+      io.to(targetSocketId).emit("dm:messageRead", { conversationId });
+    }
   });
 
   // Disconnect

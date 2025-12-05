@@ -62,3 +62,57 @@ export const messageService = {
     return response.data;
   },
 };
+
+export const friendService = {
+  searchUsers: async (query) => {
+    const response = await api.get(`/friends/search?query=${query}`);
+    return response.data;
+  },
+
+  sendFriendRequest: async (userId) => {
+    const response = await api.post(`/friends/request/${userId}`);
+    return response.data;
+  },
+
+  acceptFriendRequest: async (userId) => {
+    const response = await api.post(`/friends/accept/${userId}`);
+    return response.data;
+  },
+
+  rejectFriendRequest: async (userId) => {
+    const response = await api.post(`/friends/reject/${userId}`);
+    return response.data;
+  },
+
+  getPendingRequests: async () => {
+    const response = await api.get('/friends/requests');
+    return response.data;
+  },
+
+  getFriends: async () => {
+    const response = await api.get('/friends');
+    return response.data;
+  },
+};
+
+export const dmService = {
+  getConversations: async () => {
+    const response = await api.get('/dm/conversations');
+    return response.data;
+  },
+
+  getMessages: async (conversationId) => {
+    const response = await api.get(`/dm/${conversationId}/messages`);
+    return response.data;
+  },
+
+  sendMessage: async (recipientId, content) => {
+    const response = await api.post(`/dm/send/${recipientId}`, { content });
+    return response.data;
+  },
+
+  markAsRead: async (conversationId) => {
+    const response = await api.put(`/dm/${conversationId}/read`);
+    return response.data;
+  },
+};

@@ -8,7 +8,7 @@ import { format } from 'date-fns';
 import { Send, Hash, Smile, Moon, Sun } from 'lucide-react';
 import EmojiPicker from 'emoji-picker-react';
 
-export default function ChatArea() {
+export default function ChatArea({ isDM = false, dmData = null }) {
   const { user } = useAuthStore();
   const { currentChannel, messages, setMessages, typingUsers } = useChatStore();
   const { isDarkMode, toggleTheme } = useThemeStore();
@@ -94,6 +94,142 @@ export default function ChatArea() {
       content: messageContent,
     });
   };
+
+  if (!currentChannel && !isDM) {
+    return (
+      <div className={`flex-1 flex items-center justify-center ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
+        <div className={`text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-400'} animate-fade-in`}>
+          <div className="text-6xl mb-4 animate-float">💬</div>
+          <p className="text-xl">Select a channel or conversation to start messaging</p>
+        </div>
+      </div>
+    );
+  }
+
+  // For DMs
+  if (isDM && dmData) {
+    const { conversation, messages: dmMessages, onSendMessage } = dmData;
+    
+    console.log('DM Mode - Conversation:', conversation);
+    console.log('DM Mode - Messages:', dmMessages);
+    console.log('DM Mode - Messages length:', dmMessages?.length);
+    
+    const handleDMSubmit = async (e) => {
+      e.preventDefault();
+      if (!inputValue.trim()) return;
+      
+      const content = inputValue.trim();
+      setInputValue('');
+      setShowEmojiPicker(false);
+      
+      await onSendMessage(content);
+    };
+
+    return (
+      <div className={`flex-1 flex flex-col ${isDarkMode ? 'bg-gray-900' : 'bg-white'} animate-slide-in-right`}>
+        {/* Header */}
+        <div className={`px-6 py-4 border-b ${isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'} shadow-sm animate-slide-in-top`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                {conversation.participant?.username?.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {conversation.participant?.username}
+                </h2>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  {conversation.participant?.isOnline ? 'Online' : 'Offline'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={toggleTheme}
+              className={`p-3 rounded-lg transition-all duration-300 ${
+                isDarkMode 
+                  ? 'bg-gray-700 text-yellow-400 hover:bg-gray-600 hover:scale-110' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-110'
+              }`}
+            >
+              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          {!dmMessages || dmMessages.length === 0 ? (
+            <div className={`flex items-center justify-center h-full ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+              <p>No messages yet. Start the conversation!</p>
+            </div>
+          ) : (
+            <>
+              {dmMessages.map((message, index) => (
+                <div 
+                  key={message._id} 
+                  className={`flex gap-3 animate-message ${isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-50'} p-2 rounded-lg transition`}
+                  style={{ animationDelay: `${Math.min(index * 0.05, 1)}s` }}
+                >
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white font-semibold shadow-md">
+                    {message.sender?.username?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2">
+                      <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {message.sender?.username || 'Unknown'}
+                      </span>
+                      <span className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                        {format(new Date(message.createdAt), 'PPp')}
+                      </span>
+                    </div>
+                    <p className={`break-words ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{message.content}</p>
+                  </div>
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </>
+          )}
+        </div>
+
+        {/* Input */}
+        <div className={`p-4 border-t ${isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-gray-50'} relative`}>
+          {showEmojiPicker && (
+            <div className="absolute bottom-20 left-4 z-10 animate-scale-in">
+              <EmojiPicker onEmojiClick={onEmojiClick} theme={isDarkMode ? 'dark' : 'light'} />
+            </div>
+          )}
+          <form onSubmit={handleDMSubmit} className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              className={`p-3 ${isDarkMode ? 'text-gray-400 hover:text-indigo-400 hover:bg-gray-700' : 'text-gray-500 hover:text-indigo-600 hover:bg-gray-100'} rounded-lg transition`}
+            >
+              <Smile className="w-6 h-6" />
+            </button>
+            <input
+              type="text"
+              value={inputValue}
+              onChange={handleInputChange}
+              placeholder={`Message ${conversation.participant?.username}`}
+              className={`flex-1 px-4 py-3 border ${
+                isDarkMode 
+                  ? 'border-gray-600 bg-gray-700 text-white placeholder-gray-400 focus:ring-indigo-500' 
+                  : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500 focus:ring-indigo-500'
+              } rounded-lg focus:ring-2 focus:border-transparent`}
+            />
+            <button
+              type="submit"
+              disabled={!inputValue.trim()}
+              className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 hover:scale-105 hover:shadow-lg"
+            >
+              <Send className="w-5 h-5" />
+              <span className="hidden sm:inline">Send</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   if (!currentChannel) {
     return (

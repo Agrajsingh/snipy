@@ -93,4 +93,77 @@ export const socketService = {
       socket.off('users:online');
     }
   },
+
+  // WebRTC Signaling Methods
+  sendCallOffer: (to, offer, fromUserData) => {
+    if (socket) {
+      socket.emit('call:offer', { to, from: fromUserData.userId, offer, fromUserData });
+    }
+  },
+
+  sendCallAnswer: (to, answer) => {
+    if (socket) {
+      const userId = localStorage.getItem('userId');
+      socket.emit('call:answer', { to, from: userId, answer });
+    }
+  },
+
+  sendIceCandidate: (to, candidate) => {
+    if (socket) {
+      socket.emit('call:ice-candidate', { to, candidate });
+    }
+  },
+
+  declineCall: (to) => {
+    if (socket) {
+      const userId = localStorage.getItem('userId');
+      socket.emit('call:decline', { to, from: userId });
+    }
+  },
+
+  endCall: (to) => {
+    if (socket) {
+      socket.emit('call:end', { to });
+    }
+  },
+
+  onIncomingCall: (callback) => {
+    if (socket) {
+      socket.on('call:incoming', callback);
+    }
+  },
+
+  onCallAnswered: (callback) => {
+    if (socket) {
+      socket.on('call:answered', callback);
+    }
+  },
+
+  onCallDeclined: (callback) => {
+    if (socket) {
+      socket.on('call:declined', callback);
+    }
+  },
+
+  onCallEnded: (callback) => {
+    if (socket) {
+      socket.on('call:ended', callback);
+    }
+  },
+
+  onIceCandidate: (callback) => {
+    if (socket) {
+      socket.on('call:ice-candidate', callback);
+    }
+  },
+
+  offCallEvents: () => {
+    if (socket) {
+      socket.off('call:incoming');
+      socket.off('call:answered');
+      socket.off('call:declined');
+      socket.off('call:ended');
+      socket.off('call:ice-candidate');
+    }
+  },
 };
