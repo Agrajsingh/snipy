@@ -1,0 +1,14 @@
+{
+  "name": "snipy-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.24.0",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "echo 'Run scripts from client or server directories'",
+    "build": "echo 'No build script configured for root'"
+  }
+}
