@@ -1,6 +1,8 @@
-import axios from 'axios';
+import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+console.log("Current API URL:", API_URL);
+console.log("Raw Vite Env:", import.meta.env);
 
 const api = axios.create({
   baseURL: API_URL,
@@ -8,7 +10,7 @@ const api = axios.create({
 
 // Add token to requests
 api.interceptors.request.use((config) => {
-  const authStorage = localStorage.getItem('auth-storage');
+  const authStorage = localStorage.getItem("auth-storage");
   if (authStorage) {
     const { state } = JSON.parse(authStorage);
     if (state.token) {
