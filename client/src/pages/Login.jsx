@@ -113,6 +113,7 @@ export default function Login() {
                   ? 'border-gray-600 bg-gray-700 text-white placeholder-gray-400 focus:ring-indigo-500' 
                   : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500 focus:ring-indigo-500'
               } rounded-lg focus:ring-2 focus:border-transparent transition hover:border-indigo-300`}
+              autoComplete="email"
               placeholder="your@email.com"
             />
           </div>
@@ -132,6 +133,7 @@ export default function Login() {
                   ? 'border-gray-600 bg-gray-700 text-white placeholder-gray-400 focus:ring-indigo-500' 
                   : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500 focus:ring-indigo-500'
               } rounded-lg focus:ring-2 focus:border-transparent transition hover:border-indigo-300`}
+              autoComplete="current-password"
               placeholder="••••••••"
             />
           </div>
